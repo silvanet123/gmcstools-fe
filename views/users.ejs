@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Add Users</title>
+        <link rel='stylesheet' href='../stylesheets/style.css'/>
+    </head>
+    <body>
+        <form name="getname" method="POST" action="./add">
+            <div>
+                <label>First Name</label>
+                <input id="inputFirstName" type="text" name="firstName"/>
+            </div>
+
+            <div>
+                <label>Middle Name</label>
+                <input id="inputMiddleName" type="text" name="middleName"/>
+            </div>
+
+            <div>
+                <label>Last Name</label>
+                <input id="inputLastName" type="text" name="lastName"/>
+            </div>
+            <div>
+                <label>Birthday</label>
+                <input id="inputBirthDay" type="date" name="DOB"/>
+            </div>
+            <div>
+                <label>Site</label>
+                <select id="mySites" name="site">
+                    <% data.sites.forEach(siteobj=>{ %>
+                        <option>
+                            <%= siteobj.name%>
+                        </option>
+                    <% }) %>
+                </select>
+            </div>
+            <div>
+                <label>Role</label>
+                <select id="myRole" name="role">
+                    <% data.roles.forEach(role=>{ %>
+                        <option>
+                            <%= role %>
+                        </option>
+                    <% }) %>
+                </select>
+            </div>
+            <div>
+                <input type="button" value="Generate ID" onclick="generateID()">
+            </div>
+            <div>
+                <label>User ID</label>
+                <input id="inputUserID" type="text" name="userid" onkeyup="document.getname.btnVerifyID.disabled=false;  document.getname.submit.disabled = true">
+            </div>
+            <div>
+                <label>Default Password</label>
+                <input id="inputPW" type="text" name="PW" value="Gallup1">
+            </div>
+            <div>
+                <input id="btnVerifyID" type="button" disabled value="Veirfy Unique ID" onclick="verifyID()"/>
+            </div>
+            <div>
+                <input id="submit" type="submit" value="Create ID" disabled/>
+            </div>
+            <script>
+                const generateID = async () => {
+                    var fname = document.getname.inputFirstName.value;
+                    var lname = document.getname.inputLastName.value;
+                    var baseid = fname.charAt(0) + lname
+                    const newid = await getUniqueID(baseid);
+
+                    document.getname.inputUserID.value = newid
+                    document.getname.btnVerifyID.disabled = true;
+                    document.getname.submit.disabled = false;
+                }
+                const verifyID = async () => {
+                    const newid = await getUniqueID(document.getname.inputUserID.value);
+                    document.getname.inputUserID.value = newid
+                    document.getname.btnVerifyID.disabled = true;
+                    document.getname.submit.disabled = false
+                }
+                const getUniqueID = async (baseid) => {
+                    const regex = /[\s\'\`\-]/g;
+                    newid = baseid.replace(regex, "").toLowerCase()
+                    isUniqe = false
+                    idCount = 0
+                    while (!isUniqe) {
+                        const response = await fetch('http://gmcstools.gmcs.org:8080/userIDs/?userID=' + newid)
+                        const data = await response.json();
+                        if (data.length == 0) {
+                            isUniqe = true
+                        } else {
+                            idCount ++
+                            newid = baseid + idCount
+                        }
+                    }
+                    return newid
+                }
+            </script>
+        </form>
+    </body>
+</html>
